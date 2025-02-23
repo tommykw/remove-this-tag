@@ -1,7 +1,6 @@
 import * as path from 'path';
-import * as Mocha from 'mocha';
+const Mocha = require('mocha');
 import { glob, IOptions } from 'glob';
-import type { Stats } from 'fs';
 
 export async function run(): Promise<void> {
     // Create the mocha test
@@ -24,7 +23,7 @@ export async function run(): Promise<void> {
 
             try {
                 // Run the mocha test
-                mocha.run(failures => {
+                mocha.run((failures: number) => {
                     if (failures > 0) {
                         reject(new Error(`${failures} tests failed.`));
                     } else {
