@@ -214,6 +214,32 @@ describe('Tag Remover Extension Test Suite', () => {
         });
     });
 
+    describe('Vue.js Edge Cases', () => {
+        it('should handle dynamic components', async () => {
+            await openTestDocument(
+                '<template><component :is="dynamicComponent">content</component></template>',
+                'vue'
+            );
+            const position = new vscode.Position(0, 10);
+            const range = new vscode.Range(position, position);
+            const actions = await getCodeActions(range);
+            await applyCodeAction(actions[0]);
+            assert.strictEqual(document.getText(), '<template></template>');
+        });
+
+        it('should handle nested slots', async () => {
+            await openTestDocument(
+                '<template><Component><template #header><slot name="title"/></template></Component></template>',
+                'vue'
+            );
+            const position = new vscode.Position(0, 10);
+            const range = new vscode.Range(position, position);
+            const actions = await getCodeActions(range);
+            await applyCodeAction(actions[0]);
+            assert.strictEqual(document.getText(), '<template></template>');
+        });
+    });
+
     describe('Vue.js Support', () => {
         it('should remove Vue template tags', async () => {
             await openTestDocument('<template><div>Hello Vue</div></template>', 'vue');
@@ -277,4 +303,4 @@ describe('Tag Remover Extension Test Suite', () => {
             );
         });
     });
-});    
+});      
