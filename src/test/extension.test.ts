@@ -28,6 +28,34 @@ describe('Tag Remover Extension Test Suite', () => {
         }
     };
 
+    describe('HTML Edge Cases', () => {
+        it('should handle malformed tags', async () => {
+            await openTestDocument('<div class="test>content</div>');
+            const position = new vscode.Position(0, 1);
+            const range = new vscode.Range(position, position);
+            const actions = await getCodeActions(range);
+            assert.strictEqual(actions?.length, 0);
+        });
+
+        it('should handle tags with special characters', async () => {
+            await openTestDocument('<div data-test="special&quot;">content</div>');
+            const position = new vscode.Position(0, 1);
+            const range = new vscode.Range(position, position);
+            const actions = await getCodeActions(range);
+            await applyCodeAction(actions[0]);
+            assert.strictEqual(document.getText(), '');
+        });
+
+        it('should handle script and style tags', async () => {
+            await openTestDocument('<style>\n.test { color: red; }\n</style>');
+            const position = new vscode.Position(0, 1);
+            const range = new vscode.Range(position, position);
+            const actions = await getCodeActions(range);
+            await applyCodeAction(actions[0]);
+            assert.strictEqual(document.getText(), '');
+        });
+    });
+
     describe('Remove Tag functionality', () => {
         it('should remove a simple tag and its content', async () => {
             await openTestDocument('<div>test content</div>');
@@ -111,6 +139,29 @@ describe('Tag Remover Extension Test Suite', () => {
         });
     });
 
+    describe('React/TSX Edge Cases', () => {
+        it('should handle dynamic component names', async () => {
+            await openTestDocument('<Component.SubComponent>content</Component.SubComponent>', 'typescriptreact');
+            const position = new vscode.Position(0, 1);
+            const range = new vscode.Range(position, position);
+            const actions = await getCodeActions(range);
+            await applyCodeAction(actions[0]);
+            assert.strictEqual(document.getText(), '');
+        });
+
+        it('should handle complex JSX expressions', async () => {
+            await openTestDocument(
+                '<div prop={`template ${expression}`}>{items.map(item => <Item key={item.id} {...item} />)}</div>',
+                'typescriptreact'
+            );
+            const position = new vscode.Position(0, 1);
+            const range = new vscode.Range(position, position);
+            const actions = await getCodeActions(range);
+            await applyCodeAction(actions[0]);
+            assert.strictEqual(document.getText(), '');
+        });
+    });
+
     describe('JSX/TSX Support', () => {
         it('should remove React component tags', async () => {
             await openTestDocument('<Button onClick={() => {}}>Click me</Button>');
@@ -160,6 +211,32 @@ describe('Tag Remover Extension Test Suite', () => {
             await applyCodeAction(actions[0]);
             
             assert.strictEqual(document.getText(), '');
+        });
+    });
+
+    describe('Vue.js Edge Cases', () => {
+        it('should handle dynamic components', async () => {
+            await openTestDocument(
+                '<template><component :is="dynamicComponent">content</component></template>',
+                'vue'
+            );
+            const position = new vscode.Position(0, 10);
+            const range = new vscode.Range(position, position);
+            const actions = await getCodeActions(range);
+            await applyCodeAction(actions[0]);
+            assert.strictEqual(document.getText(), '<template></template>');
+        });
+
+        it('should handle nested slots', async () => {
+            await openTestDocument(
+                '<template><Component><template #header><slot name="title"/></template></Component></template>',
+                'vue'
+            );
+            const position = new vscode.Position(0, 10);
+            const range = new vscode.Range(position, position);
+            const actions = await getCodeActions(range);
+            await applyCodeAction(actions[0]);
+            assert.strictEqual(document.getText(), '<template></template>');
         });
     });
 
@@ -226,4 +303,22 @@ describe('Tag Remover Extension Test Suite', () => {
             );
         });
     });
-}); 
+
+    describe('Error Handling', () => {
+        it('should handle invalid cursor positions', async () => {
+            await openTestDocument('text outside <div>content</div> tags');
+            const position = new vscode.Position(0, 0);
+            const range = new vscode.Range(position, position);
+            const actions = await getCodeActions(range);
+            assert.strictEqual(actions?.length, 0);
+        });
+
+        it('should handle incomplete tags', async () => {
+            await openTestDocument('<div>content');
+            const position = new vscode.Position(0, 1);
+            const range = new vscode.Range(position, position);
+            const actions = await getCodeActions(range);
+            assert.strictEqual(actions?.length, 0);
+        });
+    });
+});        
