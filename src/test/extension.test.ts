@@ -139,6 +139,29 @@ describe('Tag Remover Extension Test Suite', () => {
         });
     });
 
+    describe('React/TSX Edge Cases', () => {
+        it('should handle dynamic component names', async () => {
+            await openTestDocument('<Component.SubComponent>content</Component.SubComponent>', 'typescriptreact');
+            const position = new vscode.Position(0, 1);
+            const range = new vscode.Range(position, position);
+            const actions = await getCodeActions(range);
+            await applyCodeAction(actions[0]);
+            assert.strictEqual(document.getText(), '');
+        });
+
+        it('should handle complex JSX expressions', async () => {
+            await openTestDocument(
+                '<div prop={`template ${expression}`}>{items.map(item => <Item key={item.id} {...item} />)}</div>',
+                'typescriptreact'
+            );
+            const position = new vscode.Position(0, 1);
+            const range = new vscode.Range(position, position);
+            const actions = await getCodeActions(range);
+            await applyCodeAction(actions[0]);
+            assert.strictEqual(document.getText(), '');
+        });
+    });
+
     describe('JSX/TSX Support', () => {
         it('should remove React component tags', async () => {
             await openTestDocument('<Button onClick={() => {}}>Click me</Button>');
@@ -254,4 +277,4 @@ describe('Tag Remover Extension Test Suite', () => {
             );
         });
     });
-});  
+});    
