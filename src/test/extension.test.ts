@@ -28,6 +28,34 @@ describe('Tag Remover Extension Test Suite', () => {
         }
     };
 
+    describe('HTML Edge Cases', () => {
+        it('should handle malformed tags', async () => {
+            await openTestDocument('<div class="test>content</div>');
+            const position = new vscode.Position(0, 1);
+            const range = new vscode.Range(position, position);
+            const actions = await getCodeActions(range);
+            assert.strictEqual(actions?.length, 0);
+        });
+
+        it('should handle tags with special characters', async () => {
+            await openTestDocument('<div data-test="special&quot;">content</div>');
+            const position = new vscode.Position(0, 1);
+            const range = new vscode.Range(position, position);
+            const actions = await getCodeActions(range);
+            await applyCodeAction(actions[0]);
+            assert.strictEqual(document.getText(), '');
+        });
+
+        it('should handle script and style tags', async () => {
+            await openTestDocument('<style>\n.test { color: red; }\n</style>');
+            const position = new vscode.Position(0, 1);
+            const range = new vscode.Range(position, position);
+            const actions = await getCodeActions(range);
+            await applyCodeAction(actions[0]);
+            assert.strictEqual(document.getText(), '');
+        });
+    });
+
     describe('Remove Tag functionality', () => {
         it('should remove a simple tag and its content', async () => {
             await openTestDocument('<div>test content</div>');
@@ -226,4 +254,4 @@ describe('Tag Remover Extension Test Suite', () => {
             );
         });
     });
-}); 
+});  
