@@ -1,6 +1,7 @@
 import * as path from 'path';
-const Mocha = require('mocha');
-import { glob, IOptions } from 'glob';
+import Mocha = require('mocha');
+import { glob } from 'glob';
+import type { IOptions } from 'glob';
 
 export async function run(): Promise<void> {
     // Create the mocha test
