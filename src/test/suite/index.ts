@@ -1,7 +1,6 @@
 import * as path from 'path';
 import Mocha = require('mocha');
-import { glob } from 'glob';
-import type { IOptions } from 'glob';
+import { glob, IOptions } from 'glob';
 
 export async function run(): Promise<void> {
     const mocha = new Mocha({
