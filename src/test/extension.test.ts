@@ -303,4 +303,22 @@ describe('Tag Remover Extension Test Suite', () => {
             );
         });
     });
-});      
+
+    describe('Error Handling', () => {
+        it('should handle invalid cursor positions', async () => {
+            await openTestDocument('text outside <div>content</div> tags');
+            const position = new vscode.Position(0, 0);
+            const range = new vscode.Range(position, position);
+            const actions = await getCodeActions(range);
+            assert.strictEqual(actions?.length, 0);
+        });
+
+        it('should handle incomplete tags', async () => {
+            await openTestDocument('<div>content');
+            const position = new vscode.Position(0, 1);
+            const range = new vscode.Range(position, position);
+            const actions = await getCodeActions(range);
+            assert.strictEqual(actions?.length, 0);
+        });
+    });
+});        
