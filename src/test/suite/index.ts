@@ -1,6 +1,7 @@
 import * as path from 'path';
-import * as Mocha from 'mocha';
+import Mocha from 'mocha';
 import { glob } from 'glob';
+import type { GlobOptionsWithFileTypes } from 'glob';
 
 export async function run(): Promise<void> {
     const mocha = new Mocha({
@@ -9,14 +10,15 @@ export async function run(): Promise<void> {
     });
 
     const testsRoot = path.resolve(__dirname, '..');
-    const files = await glob('**/**.test.js', { absolute: false, cwd: testsRoot });
+    const options: GlobOptionsWithFileTypes = { cwd: testsRoot };
+    const files = await glob('**/**.test.js', options);
 
     // Add files to the test suite
-    (Array.isArray(files) ? files : [files]).forEach(f => mocha.addFile(path.resolve(testsRoot, f)));
+    files.forEach(f => mocha.addFile(path.resolve(testsRoot, f)));
 
     try {
         return new Promise<void>((resolve, reject) => {
-            mocha.run(failures => {
+            mocha.run((failures: number) => {
                 if (failures > 0) {
                     reject(new Error(`${failures} tests failed.`));
                 } else {
