@@ -1,6 +1,7 @@
 import * as path from 'path';
 import * as Mocha from 'mocha';
-import { glob } from 'glob';
+import { glob, IOptions } from 'glob';
+import type { Stats } from 'fs';
 
 export async function run(): Promise<void> {
     // Create the mocha test
@@ -13,7 +14,7 @@ export async function run(): Promise<void> {
     const testsRoot = path.resolve(__dirname, '..');
 
     return new Promise<void>((resolve, reject) => {
-        glob('**/**.test.js', { cwd: testsRoot }, (err, files) => {
+        glob('**/**.test.js', { cwd: testsRoot } as IOptions, (err: Error | null, files: string[]) => {
             if (err) {
                 return reject(err);
             }
