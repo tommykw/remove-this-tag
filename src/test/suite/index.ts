@@ -1,7 +1,7 @@
 import * as path from 'path';
 import Mocha = require('mocha');
 import { glob } from 'glob';
-import type { Options } from 'glob';
+import type { IOptions } from 'glob';
 
 export async function run(): Promise<void> {
     const mocha = new Mocha({
@@ -10,7 +10,7 @@ export async function run(): Promise<void> {
     });
 
     const testsRoot = path.resolve(__dirname, '..');
-    const options: Options = { cwd: testsRoot };
+    const options: IOptions = { cwd: testsRoot };
     const files = await new Promise<string[]>((resolve, reject) => {
         glob('**/**.test.js', options, (err, matches) => {
             if (err) {
