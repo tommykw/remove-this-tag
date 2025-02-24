@@ -1,4 +1,5 @@
 # Remove This Tag
+![CI](https://github.com/tommykw/remove-this-tag/workflows/CI/badge.svg)
 
 A Visual Studio Code extension that allows you to quickly remove HTML-like tags and their corresponding closing tags in HTML, JSX, TSX, and Vue files.
 
