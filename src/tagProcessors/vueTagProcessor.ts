@@ -36,7 +36,7 @@ export class VueTagProcessor implements TagProcessor {
         let match;
         let bestMatch = null;
         let bestDistance = Infinity;
-        let stack = [];
+        let stack: { tagName: string; start: number; content: string; }[] = [];
 
         while ((match = tagRegex.exec(relevantText)) !== null) {
             const tagStart = match.index + offsetAdjustment;
@@ -121,4 +121,4 @@ export class VueTagProcessor implements TagProcessor {
 
         return { start: tagInfo.startOffset, end: tagInfo.endOffset };
     }
-}  
+}    
