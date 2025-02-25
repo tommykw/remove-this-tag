@@ -32,16 +32,48 @@ export class VueTagProcessor implements TagProcessor {
         );
         const offsetAdjustment = Math.max(this.lastTemplateMatch.start, offset - 1000);
 
-        const tagRegex = /<\/?([a-zA-Z][^>\s]*)[^>]*>/g;
+        const tagRegex = /<\/?([a-zA-Z][a-zA-Z0-9.-]*(?:\.[a-zA-Z][a-zA-Z0-9.-]*)*)[^>]*?(?:\/)?>/g;
         let match;
         let bestMatch = null;
         let bestDistance = Infinity;
+        let stack = [];
 
         while ((match = tagRegex.exec(relevantText)) !== null) {
             const tagStart = match.index + offsetAdjustment;
             const tagEnd = tagStart + match[0].length;
+            const isClosingTag = match[0].startsWith('</');
+            const isSelfClosing = match[0].endsWith('/>') || /^(img|br|hr|input|meta)$/i.test(match[1]);
 
-            if (tagStart <= offset && offset <= tagEnd) {
+            if (!isClosingTag && !isSelfClosing) {
+                stack.push({
+                    tagName: match[1],
+                    start: tagStart,
+                    content: match[0]
+                });
+            } else if (isClosingTag && stack.length > 0) {
+                const openTag = stack.pop();
+                if (openTag && openTag.tagName === match[1]) {
+                    const fullTagStart = openTag.start;
+                    const fullTagEnd = tagEnd;
+                    
+                    if (fullTagStart <= offset && offset <= fullTagEnd) {
+                        const distance = Math.min(
+                            Math.abs(offset - fullTagStart),
+                            Math.abs(offset - fullTagEnd)
+                        );
+
+                        if (distance < bestDistance) {
+                            bestDistance = distance;
+                            bestMatch = {
+                                tagName: match[1],
+                                startOffset: fullTagStart,
+                                endOffset: fullTagEnd,
+                                hasClosingTag: true,
+                            };
+                        }
+                    }
+                }
+            } else if (isSelfClosing && tagStart <= offset && offset <= tagEnd) {
                 const distance = Math.min(
                     Math.abs(offset - tagStart),
                     Math.abs(offset - tagEnd)
@@ -53,7 +85,7 @@ export class VueTagProcessor implements TagProcessor {
                         tagName: match[1],
                         startOffset: tagStart,
                         endOffset: tagEnd,
-                        hasClosingTag: !match[0].endsWith('/>'),
+                        hasClosingTag: false,
                     };
                 }
             }
@@ -63,17 +95,30 @@ export class VueTagProcessor implements TagProcessor {
     }
 
     getTagRange(text: string, tagInfo: TagInfo): { start: number; end: number } {
-        if (!tagInfo.hasClosingTag) {
+        // For self-closing tags or if we already have the full range
+        if (!tagInfo.hasClosingTag || tagInfo.endOffset > tagInfo.startOffset + tagInfo.tagName.length + 2) {
             return { start: tagInfo.startOffset, end: tagInfo.endOffset };
         }
 
-        const closeTagRegex = new RegExp(`</${tagInfo.tagName}>`, 'g');
-        closeTagRegex.lastIndex = tagInfo.endOffset;
-        const closeMatch = closeTagRegex.exec(text);
+        let depth = 0;
+        const tagRegex = new RegExp(`</?${tagInfo.tagName}(?:\\s+[^>]*)?(?:/>|>)`, 'g');
+        tagRegex.lastIndex = tagInfo.startOffset;
+        
+        let match;
+        while ((match = tagRegex.exec(text)) !== null) {
+            if (match[0].startsWith('</')) {
+                depth--;
+                if (depth === 0) {
+                    return {
+                        start: tagInfo.startOffset,
+                        end: match.index + match[0].length
+                    };
+                }
+            } else if (!match[0].endsWith('/>')) {
+                depth++;
+            }
+        }
 
-        return {
-            start: tagInfo.startOffset,
-            end: closeMatch ? closeMatch.index + closeMatch[0].length : tagInfo.endOffset
-        };
+        return { start: tagInfo.startOffset, end: tagInfo.endOffset };
     }
-} 
+}  
