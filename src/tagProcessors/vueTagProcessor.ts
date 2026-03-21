@@ -1,4 +1,5 @@
 import { TagProcessor, TagInfo } from './types';
+import { HTMLTagProcessor } from './htmlTagProcessor';
 
 export class VueTagProcessor implements TagProcessor {
     private lastTemplateMatch: { start: number; end: number; } | null = null;
@@ -54,6 +55,7 @@ export class VueTagProcessor implements TagProcessor {
                         startOffset: tagStart,
                         endOffset: tagEnd,
                         hasClosingTag: !match[0].endsWith('/>'),
+                        isClosingTag: match[0].startsWith('</'),
                     };
                 }
             }
@@ -63,17 +65,6 @@ export class VueTagProcessor implements TagProcessor {
     }
 
     getTagRange(text: string, tagInfo: TagInfo): { start: number; end: number } {
-        if (!tagInfo.hasClosingTag) {
-            return { start: tagInfo.startOffset, end: tagInfo.endOffset };
-        }
-
-        const closeTagRegex = new RegExp(`</${tagInfo.tagName}>`, 'g');
-        closeTagRegex.lastIndex = tagInfo.endOffset;
-        const closeMatch = closeTagRegex.exec(text);
-
-        return {
-            start: tagInfo.startOffset,
-            end: closeMatch ? closeMatch.index + closeMatch[0].length : tagInfo.endOffset
-        };
+        return new HTMLTagProcessor().getTagRange(text, tagInfo);
     }
 } 

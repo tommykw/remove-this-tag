@@ -34,6 +34,7 @@ export class ReactTagProcessor implements TagProcessor {
                         startOffset: tagStart,
                         endOffset: tagEnd,
                         hasClosingTag: !match[0].endsWith('/>'),
+                        isClosingTag: match[0].startsWith('</'),
                     };
                 }
             }

@@ -66,6 +66,21 @@ A Visual Studio Code extension that allows you to quickly remove HTML-like tags 
 </template>
 ```
 
+
+## Development
+
+### Run as a VS Code extension
+
+1. Install dependencies: `pnpm install`
+2. Build once: `pnpm run compile`
+3. Open this repository in VS Code and press `F5`
+4. In the Extension Development Host, open an `.html`, `.jsx`, `.tsx`, or `.vue` file and run Quick Fix (`Ctrl+.` / `Cmd+.`)
+
+### Tests
+
+- Integration-style extension tests (VS Code host): `pnpm test`
+- Fast unit tests for tag processors + manifest sanity: `pnpm run test:unit`
+
 ## Requirements
 
 - Visual Studio Code version 1.96.0 or higher
