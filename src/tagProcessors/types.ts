@@ -3,6 +3,7 @@ export interface TagInfo {
     startOffset: number;
     endOffset: number;
     hasClosingTag: boolean;
+    isClosingTag: boolean;
 }
 
 export interface TagProcessor {

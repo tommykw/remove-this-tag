@@ -63,7 +63,8 @@
     "pretest": "pnpm run compile-tests && pnpm run compile && pnpm run lint",
     "check-types": "tsc --noEmit",
     "lint": "eslint src",
-    "test": "pnpm run compile && node ./out/test/runTest.js"
+    "test": "pnpm run compile && node ./out/test/runTest.js",
+    "test:unit": "pnpm run compile-tests && mocha out/test/unit/**/*.test.js"
   },
   "devDependencies": {
     "@types/glob": "^7.2.0",

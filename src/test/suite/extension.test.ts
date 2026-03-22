@@ -127,6 +127,18 @@ describe('Tag Remover Extension Test Suite', () => {
             assert.strictEqual(actions?.length, 0);
         });
 
+
+        it('should remove the correct matching tag when nested with same name', async () => {
+            await openTestDocument('<div><div>inner</div></div>');
+            const position = new vscode.Position(0, 1); // outer <div>
+            const range = new vscode.Range(position, position);
+
+            const actions = await getCodeActions(range);
+            await applyCodeAction(actions[0]);
+
+            assert.strictEqual(document.getText(), '');
+        });
+
         it('should handle multiple tags on the same line', async () => {
             await openTestDocument('<span>one</span><div>two</div><p>three</p>');
             const position = new vscode.Position(0, 18); // カーソルを<div>の中に
